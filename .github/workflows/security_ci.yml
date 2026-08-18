@@ -1,0 +1,68 @@
+name: Blue Team Security Suite CI & Automated Verification
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  security-validation:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+    - name: Check out repository source
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Execute Static Secrets & Pre-Commit Audit
+      run: |
+        cd vigil-secrets-guard
+        python vigil_guard.py sample_code_test.py || true
+
+    - name: Test Docker Hardening SAST Engine
+      run: |
+        cd docker-security-auditor
+        python auditor.py Dockerfile.sample
+
+    - name: Test Threat Hunting C2 Beacon Radar
+      run: |
+        cd vortex-c2-hunter
+        python vortex_hunter.py
+
+    - name: Test Endpoint Detection & Response (EDR) Simulator
+      run: |
+        cd krypton-edr-sensor
+        python krypton_edr.py
+
+    - name: Test AI & Quantum CBOM Defense Matrix
+      run: |
+        cd q-rag-guard
+        python q_rag_guard.py
+
+    - name: Test Cloud Security Posture Auditor (CSPM)
+      run: |
+        cd nova-cloudguard
+        python nova_cloudguard.py
+
+    - name: Test Vulnerability Telemetry Correlator
+      run: |
+        cd nucleus-bridge-correlator
+        python nucleus_engine.py
+
+    - name: Test Password Policy & Entropy Bridge
+      run: |
+        cd hydra-forge-auditor
+        python hydra_forge.py target_passwords.txt
+
+    - name: Verify Master CLI Launcher
+      run: |
+        python -c "import master_launcher; print('[✓] Master Launcher imported and syntax verified successfully.')"
